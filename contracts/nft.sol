@@ -68,10 +68,18 @@ contract NFT is ERC721, Ownable {
     }
 
     // ------------------------------------------
+    // ------------   RECIEVE  ------------------
+    // ------------------------------------------
+
+    receive() external payable {
+        mint();
+    }
+
+    // ------------------------------------------
     // ------------   ACTIONS  ------------------
     // ------------------------------------------
 
-    function mint() external payable {
+    function mint() public payable {
         uint256 price;
         uint256 limit;
 
@@ -101,13 +109,13 @@ contract NFT is ERC721, Ownable {
                 MAX_PRESALE_HOLDER_SUPPLY -
                 presaleTokensOnHolder[msg.sender];
 
-            if(limit == 0) revert LimitQuantity();
+            if (limit == 0) revert LimitQuantity();
         }
 
         // Calc count
         uint256 count = msg.value / price;
 
-        if(count == 0) revert NotEnoughFunds();
+        if (count == 0) revert NotEnoughFunds();
 
         if (count > limit) count = limit;
 
@@ -151,7 +159,9 @@ contract NFT is ERC721, Ownable {
     }
 
     function withdraw() external onlyOwner {
-        (bool success, ) = payable(owner()).call{value: address(this).balance}("");
+        (bool success, ) = payable(owner()).call{value: address(this).balance}(
+            ""
+        );
         if (!success) revert AddressCallFailure();
     }
 

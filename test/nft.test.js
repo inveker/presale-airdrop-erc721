@@ -117,6 +117,21 @@ describe("nft.sol contract", () => {
         }
     });
 
+    it("Public sale recieve", async () => {
+        await endPresale();
+
+        const user = simpleUsers[0];
+        const price = await nft.PRICE_PUBLIC();
+        try {
+            await user.sendTransaction({
+                to: nft.address,
+                value: price
+            });
+        } catch (e) { debugLog(e); } finally {
+            expect(await nft.balanceOf(user.address)).to.eq(1);
+        }
+    });
+
     it("Public sale not enough funds", async () => {
         await endPresale();
 
@@ -167,6 +182,19 @@ describe("nft.sol contract", () => {
         const price = await nft.PRICE_PRESALE();
         try {
             await nft.connect(user).mint({ value: price });
+        } catch (e) { debugLog(e); } finally {
+            expect(await nft.balanceOf(user.address)).to.eq(1);
+        }
+    });
+
+    it("Presale recieve", async () => {
+        const user = simpleUsers[0];
+        const price = await nft.PRICE_PRESALE();
+        try {
+            await user.sendTransaction({
+                to: nft.address,
+                value: price
+            });
         } catch (e) { debugLog(e); } finally {
             expect(await nft.balanceOf(user.address)).to.eq(1);
         }
