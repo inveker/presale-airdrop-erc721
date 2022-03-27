@@ -1,7 +1,6 @@
 const { ethers, network } = require('hardhat');
 const { expect } = require("chai");
-const { default: MerkleTree } = require('merkletreejs');
-const keccak256 = require('keccak256');
+const { generateMerkleTree, getAirDropProof } = require('../scripts/airdrop.js');
 
 // Enable logger in catchs blocks
 // true = ON, false = OFF
@@ -23,10 +22,6 @@ describe("nft.sol contract", () => {
 
     // AirDrop data
     let merkleTree;
-    let merkleRoot;
-    function getAirDropProof(address) {
-        return merkleTree.getHexProof(keccak256(address));
-    }
 
     // ------------------------------------------
     // -----------   BEFOREEACH  ----------------
@@ -39,16 +34,11 @@ describe("nft.sol contract", () => {
         simpleUsers = signers.slice(101, 301);
 
         // Airdrop merkle tree
-        merkleTree = new MerkleTree(
-            airDropUsers.map(i => i.address),
-            keccak256,
-            { hashLeaves: true, sortPairs: true, },
-        );
-        merkleRoot = merkleTree.getHexRoot();
+        merkleTree = generateMerkleTree(airDropUsers.map(i => i.address));
 
         // Deploy
         const NFT = await ethers.getContractFactory("NFT");
-        nft = await NFT.connect(owner).deploy(merkleRoot);
+        nft = await NFT.connect(owner).deploy(merkleTree.getHexRoot());
         await nft.deployed();
     });
 
@@ -286,7 +276,7 @@ describe("nft.sol contract", () => {
     it("AirDrop forbidden", async () => {
         const user = simpleUsers[0];
         try {
-            await nft.connect(user).claimAirDrop(getAirDropProof(user.address));
+            await nft.connect(user).claimAirDrop(getAirDropProof(merkleTree, user.address));
         } catch (e) { debugLog(e); } finally {
             expect(await nft.balanceOf(user.address)).to.eq(0);
         }
@@ -298,7 +288,7 @@ describe("nft.sol contract", () => {
     async function airDropClaim() {
         try {
             for (let user of airDropUsers) {
-                await nft.connect(user).claimAirDrop(getAirDropProof(user.address));
+                await nft.connect(user).claimAirDrop(getAirDropProof(merkleTree, user.address));
             }
         } catch (e) { debugLog(e); } finally {
             for (let user of airDropUsers) {
@@ -311,7 +301,7 @@ describe("nft.sol contract", () => {
         const user = airDropUsers[0];
         try {
             for (let i = 0; i < 2; i++) {
-                await nft.connect(user).claimAirDrop(getAirDropProof(user.address));
+                await nft.connect(user).claimAirDrop(getAirDropProof(merkleTree, user.address));
             }
         } catch (e) { debugLog(e); } finally {
             expect(await nft.balanceOf(user.address)).to.eq(1);

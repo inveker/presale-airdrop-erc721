@@ -7,6 +7,17 @@
 ## Test
 
     npx hardhat test
+    
+## Deploy
+1. Create .env (use .env.example by example)
+2. Create airdrop_addresses.txt in project root folder (use airdrop_addresses.txt.example by example)
+3. Call command:
+   
+        npm run deploy -- --network ropsten
+
+## Verify
+
+    npm run verify -- CONTACRT_ADDRESS --network ropsten
 
 ## Description
 Smart contract implements ERC721.

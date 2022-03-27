@@ -2,3 +2,5 @@
 node_modules
 cache
 artifacts
+.env
+airdrop_addresses.txt
